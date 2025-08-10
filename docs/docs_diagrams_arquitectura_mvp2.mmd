@@ -2,37 +2,37 @@ flowchart LR
   %% Arquitectura MVP: Medallion + fuentes gratuitas
 
   subgraph Fuentes Gratuitas
-    YF[Yahoo Finance (yfinance)\nOHLCV SP100 + SPY + ^VIX]
-    TV[TradingView SPX components\n(snapshot universo)]
-    GDELT[GDELT GKG v2.1\nMetadatos de noticias]
+    YF[Yahoo Finance (yfinance)<br/>OHLCV SP100 + SPY + ^VIX]
+    TV[TradingView SPX components<br/>(snapshot universo)]
+    GDELT[GDELT GKG v2.1<br/>Metadatos de noticias]
   end
 
   subgraph Databricks
     direction TB
 
     subgraph Bronze (Raw)
-      U[universe_sp100_snapshot.csv\n(Snapshot S&P 100)]
-      M[ticker_vendor_map.csv\n(BRK.B -> BRK-B)]
-      A[ticker_aliases.csv\n(Alias por empresa)]
-      P[prices_raw (yfinance)\npartición por date]
-      N[gdelt_gkg_raw\npartición por date]
+      U[universe_sp100_snapshot.csv<br/>(Snapshot S&amp;P 100)]
+      M[ticker_vendor_map.csv<br/>(BRK.B → BRK-B)]
+      A[ticker_aliases.csv<br/>(Alias por empresa)]
+      P[prices_raw (yfinance)<br/>partición por date]
+      N[gdelt_gkg_raw<br/>partición por date]
     end
 
     subgraph Silver (Curado)
-      PD[prices_daily\nadj OHLCV]
-      MF[market_features\nSPY y ^VIX]
-      NE[news_entities\nmatch por alias]
-      NA[news_daily_agg\nagg por ticker-date]
+      PD[prices_daily<br/>adj OHLCV]
+      MF[market_features<br/>SPY y ^VIX]
+      NE[news_entities<br/>match por alias]
+      NA[news_daily_agg<br/>agg por ticker-date]
     end
 
     subgraph Gold (ML Ready)
-      FE[features_daily\npreprocesado + bins]
-      LB[labels_daily\nτ_up/τ_down + costos]
-      DS[dataset_ml\njoin features + labels]
+      FE[features_daily<br/>preprocesado + bins]
+      LB[labels_daily<br/>τ_up/τ_down + costos]
+      DS[dataset_ml<br/>join features + labels]
     end
 
-    O[Jobs de Databricks\norquestación diaria]
-    QC[Checks de calidad\nconteos, nulos, cobertura]
+    O[Jobs de Databricks<br/>orquestación diaria]
+    QC[Checks de calidad<br/>conteos, nulos, cobertura]
   end
 
   %% Flujo de datos
@@ -57,4 +57,13 @@ flowchart LR
   O -.-> NA
   O -.-> FE
   O -.-> LB
-  QC -.-> U & M & A & P & N & PD & NA & FE & LB & DS
+  QC -.-> U
+  QC -.-> M
+  QC -.-> A
+  QC -.-> P
+  QC -.-> N
+  QC -.-> PD
+  QC -.-> NA
+  QC -.-> FE
+  QC -.-> LB
+  QC -.-> DS
