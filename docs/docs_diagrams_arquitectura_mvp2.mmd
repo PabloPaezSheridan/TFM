@@ -2,37 +2,37 @@ flowchart LR
   %% Arquitectura MVP: Medallion + fuentes gratuitas
 
   subgraph Fuentes Gratuitas
-    YF[Yahoo Finance (yfinance)<br/>OHLCV SP100 + SPY + ^VIX]
-    TV[TradingView SPX components<br/>(snapshot universo)]
-    GDELT[GDELT GKG v2.1<br/>Metadatos de noticias]
+    YF["Yahoo Finance (yfinance) OHLCV SP100 + SPY + ^VIX"]
+    TV["TradingView SPX components (snapshot universo)"]
+    GDELT["GDELT GKG v2.1 Metadatos de noticias"]
   end
 
   subgraph Databricks
     direction TB
 
     subgraph Bronze (Raw)
-      U[universe_sp100_snapshot.csv<br/>(Snapshot S&amp;P 100)]
-      M[ticker_vendor_map.csv<br/>(BRK.B → BRK-B)]
-      A[ticker_aliases.csv<br/>(Alias por empresa)]
-      P[prices_raw (yfinance)<br/>partición por date]
-      N[gdelt_gkg_raw<br/>partición por date]
+      U["universe_sp100_snapshot.csv (Snapshot S&amp;P 100)"]
+      M["ticker_vendor_map.csv (BRK.B to BRK-B)"]
+      A["ticker_aliases.csv (Alias por empresa)"]
+      P["prices_raw (yfinance) partición por date"]
+      N["gdelt_gkg_raw partición por date"]
     end
 
     subgraph Silver (Curado)
-      PD[prices_daily<br/>adj OHLCV]
-      MF[market_features<br/>SPY y ^VIX]
-      NE[news_entities<br/>match por alias]
-      NA[news_daily_agg<br/>agg por ticker-date]
+      PD["prices_daily adj OHLCV"]
+      MF["market_features SPY y ^VIX"]
+      NE["news_entities match por alias"]
+      NA["news_daily_agg agg por ticker-date"]
     end
 
     subgraph Gold (ML Ready)
-      FE[features_daily<br/>preprocesado + bins]
-      LB[labels_daily<br/>τ_up/τ_down + costos]
-      DS[dataset_ml<br/>join features + labels]
+      FE["features_daily preprocesado + bins"]
+      LB["labels_daily tau_up/tau_down + costos"]
+      DS["dataset_ml join features + labels"]
     end
 
-    O[Jobs de Databricks<br/>orquestación diaria]
-    QC[Checks de calidad<br/>conteos, nulos, cobertura]
+    O["Jobs de Databricks orquestación diaria"]
+    QC["Checks de calidad conteos, nulos, cobertura"]
   end
 
   %% Flujo de datos
