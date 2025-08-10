@@ -1,16 +1,16 @@
 flowchart LR
   %% Arquitectura MVP: Medallion + fuentes gratuitas
 
-  subgraph Fuentes Gratuitas
+  subgraph Sources["Fuentes Gratuitas"]
     YF["Yahoo Finance (yfinance) OHLCV SP100 + SPY + ^VIX"]
     TV["TradingView SPX components (snapshot universo)"]
     GDELT["GDELT GKG v2.1 Metadatos de noticias"]
   end
 
-  subgraph Databricks
+  subgraph Databricks["Databricks"]
     direction TB
 
-    subgraph Bronze (Raw)
+    subgraph Bronze["Bronze (Raw)"]
       U["universe_sp100_snapshot.csv (Snapshot S&amp;P 100)"]
       M["ticker_vendor_map.csv (BRK.B to BRK-B)"]
       A["ticker_aliases.csv (Alias por empresa)"]
@@ -18,14 +18,14 @@ flowchart LR
       N["gdelt_gkg_raw partición por date"]
     end
 
-    subgraph Silver (Curado)
+    subgraph Silver["Silver (Curado)"]
       PD["prices_daily adj OHLCV"]
       MF["market_features SPY y ^VIX"]
       NE["news_entities match por alias"]
       NA["news_daily_agg agg por ticker-date"]
     end
 
-    subgraph Gold (ML Ready)
+    subgraph Gold["Gold (ML Ready)"]
       FE["features_daily preprocesado + bins"]
       LB["labels_daily tau_up/tau_down + costos"]
       DS["dataset_ml join features + labels"]
