@@ -1,5 +1,5 @@
 flowchart LR
-  %% Arquitectura MVP: Medallion + fuentes gratuitas
+  %% Arquitectura MVP: Medallion + fuentes gratuitas (sin checks de calidad)
 
   subgraph Sources["Fuentes Gratuitas"]
     YF["Yahoo Finance (yfinance) OHLCV SP100 + SPY + ^VIX"]
@@ -32,7 +32,6 @@ flowchart LR
     end
 
     O["Jobs de Databricks orquestación diaria"]
-    QC["Checks de calidad conteos, nulos, cobertura"]
   end
 
   %% Flujo de datos
@@ -50,20 +49,10 @@ flowchart LR
   FE --> DS
   PD --> LB --> DS
 
-  %% Orquestación y calidad
+  %% Orquestación
   O -.-> P
   O -.-> N
   O -.-> PD
   O -.-> NA
   O -.-> FE
   O -.-> LB
-  QC -.-> U
-  QC -.-> M
-  QC -.-> A
-  QC -.-> P
-  QC -.-> N
-  QC -.-> PD
-  QC -.-> NA
-  QC -.-> FE
-  QC -.-> LB
-  QC -.-> DS
