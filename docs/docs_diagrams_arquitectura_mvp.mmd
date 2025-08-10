@@ -1,0 +1,60 @@
+flowchart LR
+  %% Arquitectura MVP: Medallion + fuentes gratuitas
+
+  subgraph Fuentes Gratuitas
+    YF[Yahoo Finance (yfinance)\nOHLCV SP100 + SPY + ^VIX]
+    TV[TradingView SPX components\n(snapshot universo)]
+    GDELT[GDELT GKG v2.1\nMetadatos de noticias]
+  end
+
+  subgraph Databricks
+    direction TB
+
+    subgraph Bronze (Raw)
+      U[universe_sp100_snapshot.csv\n(Snapshot S&P 100)]
+      M[ticker_vendor_map.csv\n(BRK.B -> BRK-B)]
+      A[ticker_aliases.csv\n(Alias por empresa)]
+      P[prices_raw (yfinance)\npartición por date]
+      N[gdelt_gkg_raw\npartición por date]
+    end
+
+    subgraph Silver (Curado)
+      PD[prices_daily\nadj OHLCV]
+      MF[market_features\nSPY y ^VIX]
+      NE[news_entities\nmatch por alias]
+      NA[news_daily_agg\nagg por ticker-date]
+    end
+
+    subgraph Gold (ML Ready)
+      FE[features_daily\npreprocesado + bins]
+      LB[labels_daily\nτ_up/τ_down + costos]
+      DS[dataset_ml\njoin features + labels]
+    end
+
+    O[Jobs de Databricks\norquestación diaria]
+    QC[Checks de calidad\nconteos, nulos, cobertura]
+  end
+
+  %% Flujo de datos
+  YF -->|Ingesta diaria| P
+  YF -->|SPY,^VIX| MF
+  TV -->|CSV estático| U
+  GDELT -->|Ingesta diaria| N
+  M --> P
+  A --> NE
+
+  P --> PD
+  PD --> FE
+  MF --> FE
+  N --> NE --> NA --> FE
+  FE --> DS
+  PD --> LB --> DS
+
+  %% Orquestación y calidad
+  O -.-> P
+  O -.-> N
+  O -.-> PD
+  O -.-> NA
+  O -.-> FE
+  O -.-> LB
+  QC -.-> U & M & A & P & N & PD & NA & FE & LB & DS
