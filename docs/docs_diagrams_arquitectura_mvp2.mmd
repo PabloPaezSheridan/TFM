@@ -1,6 +1,7 @@
 %%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '18px' }, 'flowchart': { 'nodeSpacing': 25, 'rankSpacing': 25 }}}%%
 flowchart LR
   %% Arquitectura MVP: Medallion + fuentes gratuitas (sin checks de calidad)
+  %% Nota: se removió el nodo de vendor map (ticker_vendor_map.csv)
 
   subgraph Sources["Fuentes Gratuitas"]
     YF["Yahoo Finance (yfinance) OHLCV SP100 + SPY + ^VIX"]
@@ -13,7 +14,6 @@ flowchart LR
 
     subgraph Bronze["Bronze (Raw)"]
       U["universe_sp100_snapshot.csv (Snapshot S&amp;P 100)"]
-      M["ticker_vendor_map.csv (BRK.B to BRK-B)"]
       A["ticker_aliases.csv (Alias por empresa)"]
       P["prices_raw (yfinance) partición por date"]
       N["gdelt_gkg_raw partición por date"]
@@ -40,7 +40,6 @@ flowchart LR
   YF -->|SPY,^VIX| MF
   TV -->|CSV estático| U
   GDELT -->|Ingesta diaria| N
-  M --> P
   A --> NE
 
   P --> PD
