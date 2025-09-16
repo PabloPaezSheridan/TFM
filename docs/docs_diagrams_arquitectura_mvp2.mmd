@@ -1,12 +1,11 @@
 %%{init: {'theme': 'default', 'themeVariables': { 'fontSize': '18px' }, 'flowchart': { 'nodeSpacing': 25, 'rankSpacing': 25 }}}%%
 flowchart LR
-  %% Arquitectura MVP: Medallion + fuentes gratuitas (sin checks de calidad)
-  %% Nota: se removió el nodo de vendor map (ticker_vendor_map.csv)
-
+  %% Arquitectura Medallion
+  
   subgraph Sources["Fuentes Gratuitas"]
-    YF["Yahoo Finance (yfinance) OHLCV SP100 + SPY + ^VIX"]
-    TV["TradingView SPX components (snapshot universo)"]
-    GDELT["GDELT GKG v2.1 Metadatos de noticias"]
+    YF["Yahoo Finance (yfinance)"]
+    GDELT["GDELT API v2"]
+    VD["Databricks Volume (static data)"]
   end
 
   subgraph Databricks["Databricks"]
@@ -14,45 +13,42 @@ flowchart LR
 
     subgraph Bronze["Bronze (Raw)"]
       U["universe_sp100_snapshot.csv (Snapshot S&amp;P 100)"]
-      A["ticker_aliases.csv (Alias por empresa)"]
-      P["prices_raw (yfinance) partición por date"]
-      N["gdelt_gkg_raw partición por date"]
+      TA["ticker_aliases.csv (enterprise alias)"]
+      P["prices_raw (yfinance finance data)"]
+      GT["gdelt_tonechart (GDELT news tone)"]
     end
 
     subgraph Silver["Silver (Curado)"]
-      PD["prices_daily adj OHLCV"]
-      MF["market_features SPY y ^VIX"]
-      NE["news_entities match por alias"]
-      NA["news_daily_agg agg por ticker-date"]
+      PD["prices_daily (finance metrics)"]
+      TT["ticker_news_tone (news tone by ticker)"]
     end
 
     subgraph Gold["Gold (ML Ready)"]
-      FE["features_daily preprocesado + bins"]
-      LB["labels_daily tau_up/tau_down + costos"]
-      DS["dataset_ml join features + labels"]
+      PTD["ticker_predictor_training_dataset"]
     end
 
-    O["Jobs de Databricks orquestación diaria"]
+    O["pipeline_prediction_training_dataset job"]
   end
 
-  %% Flujo de datos
-  YF -->|Ingesta diaria| P
-  YF -->|SPY,^VIX| MF
-  TV -->|CSV estático| U
-  GDELT -->|Ingesta diaria| N
-  A --> NE
+  %% Data flow
+  YF --> O
+  VD --> |"universe_sp100_snapshot.csv from TradingView"| U
+  VD --> |"ticker_aliases.csv"| TA
+  GDELT --> O
 
-  P --> PD
-  PD --> FE
-  MF --> FE
-  N --> NE --> NA --> FE
-  FE --> DS
-  PD --> LB --> DS
+  %% bronze (ingestion)
 
-  %% Orquestación
-  O -.-> P
-  O -.-> N
-  O -.-> PD
-  O -.-> NA
-  O -.-> FE
-  O -.-> LB
+  O --> |"A1-bronze-get_finance_data"| P
+  O --> |"B1-bronze-gdelt_news_tone"| GT
+
+  %% bronze to silver 
+
+  P --> |"A2-silver-process_finance_data"| PD
+  GT --> |"B2-silver-process_news_data"| TT
+  U --> PD
+  U --> TT
+  TA --> PD
+
+  %% silver to gold
+  PD --> |"gold-data_presentation"| PTD
+  TT --> |"gold-data_presentation"| PTD
